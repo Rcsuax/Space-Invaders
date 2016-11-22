@@ -5,15 +5,36 @@ var Game = {
   preload: function(){
     game.load.image('player','/assets/images/player.png');
     game.load.image('laser','/assets/images/bullet.png');
+    game.load.image('alien','/assets/images/alien.png');
   },
   create: function(){
     game.stage.backgroundColor = '#999999';
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    ship =  game.add.sprite(200,400,'player');
+    ship =  game.add.sprite(200,430,'player');
     ship.anchor.setTo(0.5,0.5);
     game.physics.arcade.enable(ship);
     ship.body.collideWorldBounds=true;
+
+    aliens = game.add.group();
+    aliens.enableBody = true;
+    aliens.physicsBodyType = Phaser.Physics.ARCADE;
+
+    for (var y = 0; y < 4; y++) {
+      for (var x = 0; x < 5; x++) {
+        var alien = aliens.create(x * 72, y * 48, 'alien');
+        alien.anchor.setTo(0.5, 0.5);
+        alien.body.moves = false;
+      }
+    }
+
+    aliens.x = 56;
+    aliens.y = 36;
+
+    aliens.forEach(function (alien, i) {
+   game.add.tween(alien).to( { y: alien.body.y + 5 }, 500, Phaser.Easing.Sinusoidal.InOut, true, game.rnd.integerInRange(0, 500), 1000, true);
+ })
+
 
     lasers = game.add.group();
     lasers.enableBody = true;
