@@ -6,6 +6,7 @@ var Game = {
     game.load.image('player','/assets/images/player.png');
     game.load.image('laser','/assets/images/bullet.png');
     game.load.image('alien','/assets/images/alien.png');
+    game.load.spritesheet('explosion','/assets/images/explosion.png',80,80);
   },
   create: function(){
     game.stage.backgroundColor = '#999999';
@@ -32,9 +33,8 @@ var Game = {
     aliens.y = 36;
 
     aliens.forEach(function (alien, i) {
-   game.add.tween(alien).to( { y: alien.body.y + 5 }, 500, Phaser.Easing.Sinusoidal.InOut, true, game.rnd.integerInRange(0, 500), 1000, true);
- })
-
+      game.add.tween(alien).to( { y: alien.body.y + 5 }, 500, Phaser.Easing.Sinusoidal.InOut, true, game.rnd.integerInRange(0, 500), 1000, true);
+    });
 
     lasers = game.add.group();
     lasers.enableBody = true;
@@ -45,12 +45,21 @@ var Game = {
     lasers.setAll('checkWorldBounds', true);
     lasers.setAll('outOfBoundsKill', true);
 
+    explosions = game.add.group();
+    explosions.createMultiple(10, 'explosion');
+    explosions.setAll('anchor.x', 0.5);
+    explosions.setAll('anchor.y', 0.5);
+    explosions.forEach(setUp, this);
 
+    function setUp(explosion){
+      explosion.animations.add('explode');
+    }
 
-    this.UP = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    this.SPACEBAR = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     this.LEFT = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
     this.RIGHT = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
   },
+
   update: function(){
 
     function firelaser () {
@@ -66,7 +75,21 @@ var Game = {
       }
     }
 
-    if(this.UP.isDown) {
+    function explode (entity) {
+      entity.kill();
+      var explosion = explosions.getFirstExists(false);
+      explosion.reset(entity.body.x + (entity.width / 2), entity.body.y + (entity.height / 2));
+      explosion.play('explode', 30, false, true);
+    }
+
+    function collisionHandler(laser,alien){
+        explode(alien);
+        laser.kill();
+    }
+
+    game.physics.arcade.overlap(lasers, aliens, collisionHandler, null, this);
+
+    if(this.SPACEBAR.isDown) {
       firelaser();
     }
 
