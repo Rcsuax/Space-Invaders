@@ -85,7 +85,16 @@ var Game = {
             }
       }
     }
+    function animateAliens () {
+      var tween = game.add.tween(aliens).to( { x: 0 }, 2500, Phaser.Easing.Sinusoidal.InOut, true, 0, 1000, true);
+      tween.onLoop.add(descend, this);
+  }
 
+  function descend () {
+    if (ship.alive) {
+      game.add.tween(aliens).to( { y: aliens.y + 50 }, 2500, Phaser.Easing.Linear.None, true, 0, 0, false);
+    }
+  }
 
     function handleBombs () {
       aliens.forEachAlive(function (alien) {
@@ -122,6 +131,7 @@ var Game = {
     game.physics.arcade.overlap(lasers, aliens, collisionHandler, null, this);
     game.physics.arcade.overlap(bombs, ship, collisionHandler, null, this);
     handleBombs();
+    animateAliens();
 
     if(this.SPACEBAR.isDown) {
       firelaser();
