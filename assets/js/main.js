@@ -1,11 +1,13 @@
 // Create a new game instance 600px wide and 450px tall:
 var game = new Phaser.Game(400, 450, Phaser.AUTO, '');
 var laserTime = 0;
+var bombTime = 0;
 var Game = {
   preload: function(){
     game.load.image('player','/assets/images/player.png');
     game.load.image('laser','/assets/images/bullet.png');
     game.load.image('alien','/assets/images/alien.png');
+    game.load.image('bomb','/assets/images/bomb.png');
     game.load.spritesheet('explosion','/assets/images/explosion.png',80,80);
   },
   create: function(){
@@ -45,6 +47,15 @@ var Game = {
     lasers.setAll('checkWorldBounds', true);
     lasers.setAll('outOfBoundsKill', true);
 
+    bombs = game.add.group();
+    bombs.enableBody = true;
+    bombs.physicsBodyType = Phaser.Physics.ARCADE;
+    bombs.createMultiple(10, 'bomb');
+    bombs.setAll('anchor.x', 0.5);
+    bombs.setAll('anchor.y', 1);
+    bombs.setAll('checkWorldBounds', true);
+    bombs.setAll('outOfBoundsKill', true);
+
     explosions = game.add.group();
     explosions.createMultiple(10, 'explosion');
     explosions.setAll('anchor.x', 0.5);
@@ -75,6 +86,27 @@ var Game = {
       }
     }
 
+
+    function handleBombs () {
+      aliens.forEachAlive(function (alien) {
+        chanceOfDroppingBomb = game.rnd.integerInRange(0, 20 * aliens.countLiving());
+        if (chanceOfDroppingBomb == 0) {
+          dropBomb(alien);
+        }
+      }, this)
+    }
+
+    function dropBomb (alien) {
+      bomb = bombs.getFirstExists(false);
+
+      if (bomb && ship.alive) {
+        // And drop it
+        bomb.reset(alien.x + aliens.x, alien.y + aliens.y + 16);
+        bomb.body.velocity.y = +100;
+        bomb.body.gravity.y = 250
+      }
+    }
+
     function explode (entity) {
       entity.kill();
       var explosion = explosions.getFirstExists(false);
@@ -82,12 +114,14 @@ var Game = {
       explosion.play('explode', 30, false, true);
     }
 
-    function collisionHandler(laser,alien){
-        explode(alien);
-        laser.kill();
+    function collisionHandler(damage,entity){
+        explode(entity);
+        damage.kill();
     }
 
     game.physics.arcade.overlap(lasers, aliens, collisionHandler, null, this);
+    game.physics.arcade.overlap(bombs, ship, collisionHandler, null, this);
+    handleBombs();
 
     if(this.SPACEBAR.isDown) {
       firelaser();
