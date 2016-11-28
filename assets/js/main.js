@@ -8,7 +8,6 @@ var Game = {
     game.load.image('laser','/assets/images/bullet.png');
     game.load.image('alien','/assets/images/alien.png');
     game.load.image('bomb','/assets/images/bomb.png');
-    game.load.image('missile','/assets/images/missile.png');
     game.load.spritesheet('explosion','/assets/images/explosion.png',80,80);
   },
   create: function(){
@@ -47,15 +46,6 @@ var Game = {
     lasers.setAll('anchor.y', 1);
     lasers.setAll('checkWorldBounds', true);
     lasers.setAll('outOfBoundsKill', true);
-
-    missiles = game.add.group();
-    missiles.enableBody = true;
-    missiles.physicsBodyType = Phaser.Physics.ARCADE;
-    missiles.createMultiple(10, 'missile');
-    missiles.setAll('anchor.x', 0.5);
-    missiles.setAll('anchor.y', 1);
-    missiles.setAll('checkWorldBounds', true);
-    missiles.setAll('outOfBoundsKill', true);
 
     bombs = game.add.group();
     bombs.enableBody = true;
@@ -115,31 +105,6 @@ var Game = {
       }, this)
     }
 
-    function releaseMissle(){
-      aliens.forEachAlive(function(alien){
-        chanceOfDroppingBomb = game.rnd.integerInRange(0, 20 * aliens.countLiving());
-        if (chanceOfDroppingBomb == 0) {
-          dropMissile(alien);
-        }
-      },this)
-    }
-
-    function dropMissile(alien) {
-      missile = missiles.getFirstExists(false);
-
-      if (missile && ship.alive) {
-        missile.reset(alien.x + aliens.x, alien.y + aliens.y + 16);
-        missile.body.velocity.y = +100;
-        missile.body.gravity.y = 250
-
-        if (missile.y - 20 > ship.y) {
-          console.log(missile.y + " : " + ship.y + 10)
-          missile.kill();
-        }
-
-      }
-    }
-
     function dropBomb (alien) {
       bomb = bombs.getFirstExists(false);
 
@@ -165,8 +130,7 @@ var Game = {
 
     game.physics.arcade.overlap(lasers, aliens, collisionHandler, null, this);
     game.physics.arcade.overlap(bombs, ship, collisionHandler, null, this);
-    // releaseMissle();
-    // handleBombs();
+    handleBombs();
     animateAliens();
 
     if(this.SPACEBAR.isDown) {
